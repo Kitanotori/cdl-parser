@@ -1,0 +1,17 @@
+{#
+	<1T:merge(agt>thing,obj>thing).@topic>
+	<0C:suggest(icl>propose(agt>thing,obj>thing)).@entry.@complete>
+	<15:semantic publishing>
+	<2A:this(mod>thing)>
+	{#01
+		<2F:article(icl>document)>
+		<2Q:section(icl>part).@entry>
+		[2Q or 2F]
+	}
+	[0C obj 1T]
+	[1T obj 15]
+	[1T gol #01]
+	[#01 mod 2A]
+}
+
+

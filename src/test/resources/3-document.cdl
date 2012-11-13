@@ -1,0 +1,88 @@
+{#
+	<12:among(icl>in the middle of(gol>thing))>
+	<0H:data(icl>information)>
+	<00:example(icl>functional thing).@topic.@pl>
+	<0T:include(aoj>thing,obj>thing).@entry>
+	<18:others(icl>thing)>
+	<0M:space(icl>area).@pl>
+	<0C:such(icl>of type(mod<thing))>
+	[0T aoj 00]
+	[0T man 12]
+	[12 gol 18]
+	[00 obj 0M]
+	[0M mod 0C]
+	[0M mod 0H]
+}
+{#
+	<05:edit(agt>thing,obj>thing).@entry.@impertive>
+}
+{#
+	<05:Open GUID(icl>web identifier).@entry>
+}
+{#
+	<1D:Open GUID(icl>web identifier).@topic>
+	<00:aim(icl>intend(agt>thing,obj>thing)).@past>
+	<0J:context(icl>information)>
+	<24:global(icl>worldwide(aoj>thing))>
+	<2G:identifier(icl>attribute)>
+	<3M:linked(aoj>thing)>
+	<1S:maintain(icl>preserve(agt>thing,obj>thing)).@entry>
+	<09:provide(icl>supply(agt>thing,gol>thing,obj>thing)).@progress>
+	<2W:repository(icl>placeg).@indef>
+	<0Z:semantic web.@def>
+	<3B:use(icl>act)>
+	<3T:web(equ>World Wide Web).@def>
+	[1S man 00]
+	[1S agt 1D]
+	[1S obj 2W]
+	[2W pur 3B]
+	[24 aoj 2W]
+	[2W mod 2G]
+	[3B plc 3T]
+	[3M aoj 3T]
+	[00 obj 09]
+	[09 obj 0J]
+	[0J pur 0Z]
+}
+{#
+	<1O:establish(icl>start(agt>thing,obj>thing)).@entry>
+	<27:relationship(icl>way).@pl>
+	<1Y:identity(icl>relation)>
+	<2Q:Open GUID(icl>web identifier).@pl>
+	[1O agt #01]
+	[1O obj 27]
+	[27 mod 1Y]
+	[27 gol 2Q]
+	{#01
+		<0L:ontology(icl>structure).@pl.@topic>
+		<1D:publisher(icl>person).@entry.@pl.@topic>
+		<15:content(icl>things contained)>
+		<07:specific(icl>particular(aoj>thing))>
+		<00:domain(icl>field)>
+		[1D and 0L]
+		[1D mod 15]
+		[07 aoj 0L]
+		[07 gol 00]
+	}
+}
+{#
+	<05:edit(agt>thing,obj>thing).@entry.@impertive>
+}
+{#
+	<05:Simile(iof>project).@entry>
+}
+{#
+	<00:semantic(aoj>thing)>
+	<09:interoperability.@entry>
+	<1S:environment(icl>natural world).@pl>
+	<1L:unlike(mod<thing)>
+	[09 mod #01]
+	[00 aoj 09]
+	[#01 plc 1S]
+	[1S mod 1L]
+	{#01
+		<16:information.@entry>
+		<0T:metadata>
+		[16 and 0T]
+	}
+}
