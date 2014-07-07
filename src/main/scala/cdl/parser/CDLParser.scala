@@ -5,11 +5,14 @@
  */
 package cdl.parser
 
-import scala.collection.mutable.ListBuffer
-import scala.io.{ Source, BufferedSource }
+import java.io.File
+
+import scala.Array.canBuildFrom
+import scala.annotation.migration
+import scala.io.{ BufferedSource, Source }
 import scala.util.parsing.combinator.RegexParsers
 
-import cdl.objects.{ UW, Statement, Entity, DefinitionLabel, Concept, CDLDocument, Arc }
+import cdl.newobjects.{ Attribute, CDLDocument, ComplexEntity, Concept, Constraint, DefinitionLabel, ElementalRelation, Entity, RealizationLabel, Relation, UW }
 
 class CDLParsingError(reason: String) extends Exception(reason)
 class CDLParsingFailure(reason: String) extends Exception(reason)
@@ -18,8 +21,8 @@ class CDLSourceError(reason: String) extends Exception(reason)
 object CDLParser {
   def parseDocument(dataSource: Any): CDLDocument = (new CDLParser(dataSource)).parseDocument
   def parseUW(dataSource: Any): UW = (new CDLParser(dataSource)).parseUW
-  def parseConcept(dataSource: Any): Concept = (new CDLParser(dataSource)).parseConcept
-  def parseArc(dataSource: Any): Arc = (new CDLParser(dataSource)).parseArc
+  def parseConcept(dataSource: Any): UW = (new CDLParser(dataSource)).parseConcept
+  def parseArc(dataSource: Any): Relation = (new CDLParser(dataSource)).parseArc
 }
 
 /* @param source should be castable to BufferedSource or CharSequence */
@@ -34,16 +37,19 @@ class CDLParser(val dataSource: Any, val sourceLabel: String = "") extends Regex
    * @throws CDLParsingError error while parsing
    * @return parsing result
    */
-  private def doParse[T](begin: Parser[T]): ParseResult[T] = {
-    if (dataSource.isInstanceOf[BufferedSource]) {
+  private def doParse[T](begin: Parser[T]): ParseResult[T] = dataSource match {
+    case ds: BufferedSource => {
       val parsed = parseAll(begin, dataSource.asInstanceOf[BufferedSource].reader)
       dataSource.asInstanceOf[BufferedSource].close
       return parsed
-    } else if (dataSource.isInstanceOf[CharSequence]) {
+    }
+    case ds: CharSequence => {
       parseAll(begin, dataSource.asInstanceOf[CharSequence])
-    } else if (dataSource.isInstanceOf[java.io.File]) {
-      parseAll(begin, Source.fromFile(dataSource.asInstanceOf[java.io.File]).reader)
-    } else { throw new CDLSourceError("Invalid parsing source") }
+    }
+    case ds: File => {
+      parseAll(begin, Source.fromFile(dataSource.asInstanceOf[File]).reader)
+    }
+    case _ => throw new CDLSourceError("Invalid parsing source")
   }
 
   /* Just a simple helper function */
@@ -63,13 +69,13 @@ class CDLParser(val dataSource: Any, val sourceLabel: String = "") extends Regex
    * @throws(classOf[CDLParsingFailure])
    * @throws(classOf[CDLParsingError])
    */
-  def parseConcept: Concept = >>(doParse(_textEntity))
+  def parseConcept: UW = >>(doParse(_enclosedUW))
 
   /**
    * @throws(classOf[CDLParsingFailure])
    * @throws(classOf[CDLParsingError])
    */
-  def parseArc: Arc = >>(doParse(_arc))
+  def parseArc: Relation = >>(doParse(_arc))
 
   /**
    * @throws(classOf[CDLParsingFailure])
@@ -78,69 +84,88 @@ class CDLParser(val dataSource: Any, val sourceLabel: String = "") extends Regex
   def parseUW: UW = >>(doParse(_uw))
 
   private def _document: Parser[CDLDocument] = rep(_entity) ^^ {
-    case entities => new CDLDocument(entities, sourceLabel)
+    case entities => new CDLDocument(entities)
   }
 
-  private def _entity: Parser[Entity] = "{" ~> _rLabel ~ opt(_dLabel) ~ rep(_textEntity | _entity | _arc) <~ "}" ^^ {
+  private def _entity: Parser[Concept] = "{" ~> _rLabel ~ opt(_dLabel) ~ rep(_enclosedUW | _entity | _arc) <~ "}" ^^ {
     case rl ~ dl ~ entities => {
       val deflabel = dl match {
         case Some(dlabel) => dlabel
-        case None         => DefinitionLabel.Null
+        case None         => new DefinitionLabel()
       }
-      var concepts = new ListBuffer[Concept]()
-      var innerEntities = new ListBuffer[Entity]()
-      var arcs = new ListBuffer[Arc]()
-      entities.foreach(e => {
-        if (e.isInstanceOf[Arc]) {
-          arcs += e.asInstanceOf[Arc]
-        } else if (e.isInstanceOf[Concept]) {
-          concepts += e.asInstanceOf[Concept]
-        } else if (e.isInstanceOf[Statement]) {
-          innerEntities += e.asInstanceOf[Statement]
-        } else throw new CDLParsingError("Problem parsing entities")
+      var elemEntities: List[UW] = Nil
+      var innerEntities: List[Concept] = Nil
+      var arcs: List[Relation] = Nil
+      var ents: List[Entity] = Nil
+
+      entities.foreach(_ match {
+        case e: Relation => arcs :+ e
+        case e: Entity   => ents :+ e
+        //case e: UW            => elemEntities :+ e
+        //case e: ComplexEntity => innerEntities :+ e
+        case _           => throw new CDLParsingError("Problem parsing entities")
       })
-      new Statement(rl, deflabel, (concepts ++ innerEntities).toList, arcs.toList)
+
+      new ComplexEntity(rl, deflabel, Nil, ents, arcs)
     }
   }
 
-  private def _rLabel: Parser[String] = "(\\S)*".r ^^ (_.trim)
-  private def _dLabel: Parser[DefinitionLabel] = "[^<{}]*".r ^^ (DefinitionLabel.Default(_))
+  private def _rLabel: Parser[RealizationLabel] = "(\\S)*".r ^^ (new RealizationLabel(_))
+  private def _dLabel: Parser[DefinitionLabel] = "[^<>{}]*".r ^^ (new DefinitionLabel(_))
   private def _relation: Parser[String] = "(\\S)*".r
-  private def _arc: Parser[Arc] = "[" ~> _rLabel ~ _relation ~ "[^\\]]*".r <~ "]" ^^ toArc
-
-  private def toArc(obj: Any): Arc = obj match {
-    case (l1: String) ~ (l2: String) ~ (l3: String) => new Arc(l1, l2, l3)
+  private def _arc: Parser[Relation] = "[" ~> _rLabel ~ _relation ~ "[^\\]]*".r <~ "]" ^^ {
+    case (from: RealizationLabel) ~ (rel: String) ~ (to: String) => new ElementalRelation(from, new DefinitionLabel(rel), new RealizationLabel(to))
     case _ => throw new CDLParsingError("Arc doesn't match")
   }
 
-  private def _textEntity: Parser[Concept] = "<" ~> ("[^:]*".r <~ ":") ~ _uw ~ _attributes <~ ">" ^^ {
-    case rlabel ~ uw ~ attrs => {
-      if (!uw.hw.startsWith("\"") && uw.hw.contains(".@")) {
-        val x = uw.hw.split(".@")
-        val h = x(0)
-        val a = x.drop(1).toList
-        new Concept(rlabel.trim, h, uw.constraints, a)
-      } else {
-        new Concept(rlabel.trim, uw.hw, uw.constraints, attrs)
+  private def _enclosedUW: Parser[UW] = "<" ~> _uw <~ ">"
+
+  private def _uw: Parser[UW] = opt(_realizationLabel) ~ _headword ~ opt(_constraints) ~ opt(_attributes) ^^ {
+    case rlabel ~ hw ~ cons ~ attrs => {
+      val r = rlabel match {
+        case Some(x) => x
+        case None    => new RealizationLabel()
       }
+      var a: List[Attribute] = Nil
+      var h = ""
+      if (!hw.startsWith("\"") && hw.contains(".@")) {
+        val x = hw.split(".@")
+        h = x(0)
+        a = x.drop(1).map(a => new Attribute(a)).toList
+      }
+      val c = cons match {
+        case Some(x) => x
+        case None    => List[Constraint]()
+      }
+      attrs match {
+        case Some(x) => a = x
+      }
+      new UW(r, h, c, a)
     }
   }
 
-  private def _uw: Parser[UW] = _headword ~ _constraints ^^ {
-    case hw ~ consts => new UW(hw, consts)
-  }
+  private def _realizationLabel: Parser[RealizationLabel] = "[^:]*".r <~ ":" ^^ { new RealizationLabel(_) }
 
   private def _headword: Parser[String] = "\"[^\"]*\"".r | "[\\S]?[^()>]*".r ^^ (_.trim)
 
-  private def _constraints: Parser[String] = "[^\\S]*".r ~> opt("(" ~> ".*(?=\\))".r <~ "\\)[^.>]*".r) ^^ {
-    case Some(cons) => cons.trim
-    case None       => ""
+  private def _constraints: Parser[List[Constraint]] = "[^\\S]*".r ~> opt("(" ~> rep(_constraint) <~ "\\)[^.>]*".r) ^^ {
+    case Some(cons) => cons
+    case None       => List[Constraint]()
   }
 
-  private def _attributes: Parser[List[String]] = "[=]?[\\d.]*".r ~> rep(_attribute) ^^ {
-    case Nil   => List[String]()
+  // ".*(?=\\))".r
+  private def _constraint: Parser[Constraint] = _dLabel ~ (">" | "<") ~ _baseUW ^^ {
+    case dlabel ~ direction ~ cons => new Constraint(dlabel, direction, cons)
+  }
+
+  private def _attributes: Parser[List[Attribute]] = "[=]?[\\d.]*".r ~> rep(_attribute) ^^ {
+    case Nil   => List[Attribute]()
     case attrs => attrs
   }
 
-  private def _attribute: Parser[String] = "[^@>]*@".r ~> "[^>.\\s]*".r
+  private def _attribute: Parser[Attribute] = "[^@>]*@".r ~> "[^>.\\s]*".r ^^ { new Attribute(_) }
+
+  private def _baseUW: Parser[UW] = _headword ~ _constraints ^^ {
+    case hw ~ cons => new UW(hw, cons)
+  }
 }

@@ -33,9 +33,9 @@ class ConceptParsingTest extends FunSpec {
       assert(parsed.toString === """<01:"test1".@attr>""")
       assert(parsed.rlabel === "01")
       assert(parsed.uw === """"test1"""")
-      assert(parsed.attributes === List("attr"))
-      assert(parsed.constraints === "")
-      assert(parsed.toUWString === """"test1".@attr""")
+      assert(parsed.attrs === List("attr"))
+      assert(parsed.cons === "")
+      assert(parsed.uw === """"test1".@attr""")
     }
 
     it("should parse 2. test concept with an unquoted UW and a list of attributes") {
@@ -43,9 +43,9 @@ class ConceptParsingTest extends FunSpec {
       assert(parsed.toString === "<02:test2.@attr1.@attr2>")
       assert(parsed.rlabel === "02")
       assert(parsed.uw === "test2")
-      assert(parsed.attributes === List("attr1", "attr2"))
-      assert(parsed.constraints === "")
-      assert(parsed.toUWString === "test2.@attr1.@attr2")
+      assert(parsed.attrs === List("attr1", "attr2"))
+      assert(parsed.cons === "")
+      assert(parsed.uw === "test2.@attr1.@attr2")
     }
 
     it("should parse 3. test concept with quoted empty UW without attributes") {
@@ -53,9 +53,9 @@ class ConceptParsingTest extends FunSpec {
       assert(parsed.toString === """<03:"">""")
       assert(parsed.rlabel === "03")
       assert(parsed.uw === """""""")
-      assert(parsed.attributes === Nil)
-      assert(parsed.constraints === "")
-      assert(parsed.toUWString === """""""")
+      assert(parsed.attrs === Nil)
+      assert(parsed.cons === "")
+      assert(parsed.uw === """""""")
     }
 
     it("should parse 4. test concept with a number as UW and no attributes") {
@@ -63,9 +63,9 @@ class ConceptParsingTest extends FunSpec {
       assert(parsed.toString === "<04:2>")
       assert(parsed.rlabel === "04")
       assert(parsed.uw === "2")
-      assert(parsed.attributes === Nil)
-      assert(parsed.constraints === "")
-      assert(parsed.toUWString === "2")
+      assert(parsed.attrs === Nil)
+      assert(parsed.cons === "")
+      assert(parsed.uw === "2")
     }
 
     // TODO: maybe the parser should be improved to cope with syntax errors in data?
@@ -74,8 +74,8 @@ class ConceptParsingTest extends FunSpec {
       assert(parsed.toString === "<05:>")
       assert(parsed.rlabel === "05")
       assert(parsed.uw === "")
-      assert(parsed.attributes === Nil)
-      assert(parsed.constraints === "")
+      assert(parsed.attrs === Nil)
+      assert(parsed.cons === "")
       assert(parsed.toUWString === "")
     }
 
@@ -85,8 +85,8 @@ class ConceptParsingTest extends FunSpec {
       assert(parsed.toString === "<06:16(10)>")
       assert(parsed.rlabel === "06")
       assert(parsed.uw === "16(10)")
-      assert(parsed.attributes === Nil)
-      assert(parsed.constraints === "")
+      assert(parsed.attrs === Nil)
+      assert(parsed.cons === "")
       assert(parsed.toUWString === "16(10)")
     }*/
   }
