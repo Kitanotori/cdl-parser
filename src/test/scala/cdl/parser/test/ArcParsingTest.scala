@@ -11,19 +11,26 @@ import org.junit.runner.RunWith
 import org.scalatest.FunSpec
 import org.scalatest.junit.JUnitRunner
 
+import cdl.newobjects.{ DefinitionLabel, ElementalRelation, RealizationLabel, Relation }
 import cdl.parser.CDLParser
 
 @RunWith(classOf[JUnitRunner])
 class ArcParsingTest extends FunSpec {
-  val source = getClass.getResource("/arcs.cdl")
-  val data = Source.fromURL(source).getLines.toList
+  val source = Source.fromURL(getClass.getResource("/arcs.cdl"), "utf-8")
+  val data = source.getLines.toList
+  source.close()
 
   describe("Parser") {
     it("should parse arc") {
       val parsed = CDLParser.parseArc(data(0))
-      assert(parsed.from === "1")
-      assert(parsed.relation === "agt")
-      assert(parsed.to === "2")
+      assert(parsed.from.toString === "1")
+      assert(parsed.relation.toString === "agt")
+      assert(parsed.to.toString === "2")
+    }
+
+    it("should output arc as valid string") {
+      val arc: Relation = new ElementalRelation(new RealizationLabel("1"), new DefinitionLabel("agt"), new RealizationLabel("2"))
+      assert(arc.toString === "[1 agt 2]")
     }
   }
 }

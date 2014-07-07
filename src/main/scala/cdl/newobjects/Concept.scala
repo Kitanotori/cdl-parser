@@ -16,21 +16,23 @@ object ConceptType extends Enumeration {
 /*
  * RealizationLabel ::= #ArbitraryCharacterString
  */
-class RealizationLabel(var rl: String = "") {
+class RealizationLabel(rl: String = "") {
   def isEmpty = rl.isEmpty
   def nonEmpty = rl.nonEmpty
 
   override def toString = rl
+  override def equals(obj: Any): Boolean = obj.toString == toString
 }
 
 /*
  * DefinitionLabel ::= DefinitionLabelDefinedInCDD
  */
-class DefinitionLabel(var dl: String = "") {
+class DefinitionLabel(dl: String = "") {
   def isEmpty = dl.isEmpty
   def nonEmpty = dl.nonEmpty
 
   override def toString = dl
+  override def equals(obj: Any): Boolean = obj.toString == toString
 }
 
 /*
@@ -42,27 +44,32 @@ trait Concept {
   def dlabel: DefinitionLabel
   def attrs: List[Attribute]
   def ctype: ConceptType.Value = ConceptType.Textual // Is not yet implemented properly anywhere
-  override def toString: String = "{#"+rlabel+" "+dlabel+" }" // Remember to override!
+
+  override def toString: String = "{#" + rlabel + " " + dlabel + " }" // Remember to !
+  override def equals(obj: Any): Boolean = obj.toString == toString
 }
 
 trait Entity extends Concept {
 }
 
 class ElementalEntity(
-  //override val ctype: ConceptType.Value,
-  override val rlabel: RealizationLabel,
-  override val dlabel: DefinitionLabel,
-  override val attrs: List[Attribute] = Nil)
+  // val ctype: ConceptType.Value,
+  val rlabel: RealizationLabel,
+  val dlabel: DefinitionLabel,
+  val attrs: List[Attribute])
   extends Entity {
 
-  override def toString: String = "<"+rlabel+":"+dlabel + attrs.mkString(".", ".", "")+">"
+  override def toString: String = {
+    val a = if (attrs.isEmpty) "" else attrs.mkString(".@", ".@", "")
+    "<" + rlabel + ":" + dlabel + a + ">"
+  }
 }
 
 class ComplexEntity(
-  //override val ctype: ConceptType.Value,
-  override val rlabel: RealizationLabel,
-  override val dlabel: DefinitionLabel,
-  override val attrs: List[Attribute] = Nil,
+  // val ctype: ConceptType.Value,
+  val rlabel: RealizationLabel,
+  val dlabel: DefinitionLabel,
+  val attrs: List[Attribute] = Nil,
   val entities: List[Concept] = Nil, // TODO: This should be List[Entity] !
   val relations: List[Relation] = Nil)
   extends Entity {
@@ -74,7 +81,7 @@ class ComplexEntity(
 
     entities.foreach(_ match {
       case e: ElementalEntity => s ++= e.toString + '\n'
-      case e: ComplexEntity   => s ++= e.toString(tabs + '\t') + '\n'
+      case e: ComplexEntity => s ++= e.toString(tabs + '\t') + '\n'
     })
 
     relations.foreach(r => s ++= r.toString(tabs + '\t') + '\n')
@@ -102,18 +109,18 @@ trait Relation extends Concept {
   def to: RealizationLabel
 
   override def toString = toString("")
-  def toString(tabs: String) = tabs+"["+from+" "+relation+" "+to+"]"
-  def toCypherString = "x"+from+"-[:"+relation+"]->x"+to
+  def toString(tabs: String) = tabs + "[" + from + " " + relation + " " + to + "]"
+  def toCypherString = "x" + from + "-[:" + relation + "]->x" + to
 }
 
 class ElementalRelation(
-  //override val ctype: ConceptType.Value,
-  override val from: RealizationLabel,
-  override val relation: DefinitionLabel,
-  override val to: RealizationLabel,
-  override val rlabel: RealizationLabel = new RealizationLabel(),
-  override val dlabel: DefinitionLabel = new DefinitionLabel(),
-  override val attrs: List[Attribute] = Nil)
+  // val ctype: ConceptType.Value,
+  val from: RealizationLabel,
+  val relation: DefinitionLabel,
+  val to: RealizationLabel,
+  val rlabel: RealizationLabel = new RealizationLabel(),
+  val dlabel: DefinitionLabel = new DefinitionLabel(),
+  val attrs: List[Attribute] = Nil)
   extends Relation {
 
   def this(from: String, rel: String, to: String) = this(new RealizationLabel(from), new DefinitionLabel(rel), new RealizationLabel(to))
@@ -124,39 +131,47 @@ class ElementalRelation(
 //}
 
 class Attribute(
-  //override val ctype: ConceptType.Value = ConceptType.Textual,
-  override val dlabel: DefinitionLabel,
-  override val rlabel: RealizationLabel = new RealizationLabel(),
-  override val attrs: List[Attribute] = Nil)
+  // val ctype: ConceptType.Value = ConceptType.Textual,
+  val dlabel: DefinitionLabel,
+  val rlabel: RealizationLabel = new RealizationLabel(),
+  val attrs: List[Attribute] = Nil)
   extends Concept {
 
   def this(attr: String) {
     this(new DefinitionLabel(attr))
   }
+  def toAttrListForm = ".@" + toString
 
   override def toString = dlabel.toString
-  def toAttrListForm = ".@"+toString
+}
+
+object UW {
+  def getConsStr(cons: List[Constraint]): String = {
+    if (cons.isEmpty) ""
+    else cons.mkString("(", ",", ")")
+  }
 }
 
 class UW(
   //ctype: ConceptType.Value = ConceptType.Proper,
-  rlabel: RealizationLabel,
+  rl: RealizationLabel,
   val hw: String,
   val cons: List[Constraint],
-  override val attrs: List[Attribute])
-  extends ElementalEntity(rlabel, new DefinitionLabel(hw + cons.mkString("(", ",", ")"))) {
+  atr: List[Attribute])
+  extends ElementalEntity(rl, new DefinitionLabel(hw + UW.getConsStr(cons)), atr) {
 
-  def this(hw: String, cons: List[Constraint], attrs: List[Attribute] = Nil) = this(new RealizationLabel(), hw, cons, attrs)
+  def this(hw: String, cons: List[Constraint] = Nil, attrs: List[Attribute] = Nil) = this(new RealizationLabel(), hw, cons, attrs)
 
-  def uw = dlabel.toString
+  def baseUW = dlabel.toString
 }
 
 /*
  * By specification Constraint is actually ComplexEntity, so this is slight simplification
  */
 class Constraint(val rel: DefinitionLabel, val direction: String, val uw: UW) {
-  //def this(c: String) {  }
+  def this(r: String, d: String, u: String) { this(new DefinitionLabel(r), d, new UW(u)) }
   override def toString: String = rel + direction + uw.toString
+  override def equals(obj: Any): Boolean = obj.toString == toString
 }
 
 class CDLDocument(
