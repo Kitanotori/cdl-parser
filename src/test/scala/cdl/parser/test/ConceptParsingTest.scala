@@ -115,8 +115,8 @@ class ConceptParsingTest extends FunSpec {
       assert(parsed.rlabel.toString === "09")
       assert(parsed.hw === "a")
       assert(parsed.attrs === List("h", "i"))
-      assert(parsed.cons === List(new Constraint("x", ">",
-        new UW("c", List(new Constraint("d", ">", "e"), new Constraint("f", "<", "g")), List[Attribute]()))))
+      assert(parsed.cons === List(new Constraint("b", ">",
+        new UW("c", List(new Constraint("d", ">", "e"), new Constraint("f", "<", "g"))))))
       assert(parsed.baseUW === "a(b>c(d>e,f<g))")
 
     }

@@ -25,7 +25,11 @@ class DocumentParsingTest extends FunSpec {
       assert(parsed.dlabel.isEmpty)
       assert(parsed.rlabel.isEmpty)
       val asStr = parsed.toString
-      assert(CDLParser.parseDocument(asStr).toString.replaceAll("\\s", "") === asStr.replaceAll("\\s", ""))
+      println(asStr)
+      val parsedString = CDLParser.parseDocument(asStr).toString
+      println("1.\n"+asStr)
+      println("\n2.\n"+parsedString)
+      assert(parsedString.replaceAll("\\s", "") === asStr.replaceAll("\\s", ""))
     }
     
     it("should parse complex document") {
@@ -45,7 +49,10 @@ class DocumentParsingTest extends FunSpec {
       assert(parsed.dlabel.isEmpty)
       assert(parsed.rlabel.isEmpty)
       val asStr = parsed.toString
-      assert(CDLParser.parseDocument(asStr).toString.replaceAll("\\s", "") === asStr.replaceAll("\\s", ""))
+      val parsedString = CDLParser.parseDocument(asStr).toString
+      println("1.\n"+asStr)
+      println("\n2.\n"+parsedString)
+      assert(parsedString.replaceAll("\\s", "") === asStr.replaceAll("\\s", ""))
     }
   }
 }
