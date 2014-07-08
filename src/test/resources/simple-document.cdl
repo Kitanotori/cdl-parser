@@ -1,0 +1,5 @@
+{#01
+	<2F:article(icl>document)>
+	<2Q:section(icl>part).@entry>
+	[2Q or 2F]
+}
