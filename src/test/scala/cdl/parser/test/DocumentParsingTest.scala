@@ -6,26 +6,46 @@
 package cdl.parser.test
 
 import scala.io.Source
+
 import org.junit.runner.RunWith
 import org.scalatest.FunSpec
-import cdl.newobjects.CDLDocument
-import cdl.parser.CDLParser
 import org.scalatest.junit.JUnitRunner
+
+import cdl.objects.CDLDocument
+import cdl.parser.CDLParser
 
 @RunWith(classOf[JUnitRunner])
 class DocumentParsingTest extends FunSpec {
 
   describe("CDL document") {
-    it("should parse 1. document") {
-      val data = getClass.getResource("/1-document.cdl")
-      println("Starting to parse")
+    it("should parse simple document") {
+      val data = getClass.getResource("/simple-document.cdl")
       val parsed: CDLDocument = CDLParser.parseDocument(Source.fromURL(data))
-      println("Finished parsing")
       assert(parsed.attrs === Nil)
-      assert(parsed.dlabel === Nil)
-      assert(parsed.rlabel === Nil)
+      assert(parsed.dlabel.isEmpty)
+      assert(parsed.rlabel.isEmpty)
       val asStr = parsed.toString
-      assert(CDLParser.parseDocument(asStr).toString === asStr)
+      assert(CDLParser.parseDocument(asStr).toString.replaceAll("\\s", "") === asStr.replaceAll("\\s", ""))
+    }
+    
+    it("should parse complex document") {
+      val data = getClass.getResource("/1-document.cdl")
+      val parsed: CDLDocument = CDLParser.parseDocument(Source.fromURL(data))
+      assert(parsed.attrs === Nil)
+      assert(parsed.dlabel.isEmpty)
+      assert(parsed.rlabel.isEmpty)
+      val asStr = parsed.toString
+      assert(CDLParser.parseDocument(asStr).toString.replaceAll("\\s", "") === asStr.replaceAll("\\s", ""))
+    }
+    
+    it("should parse complex and longer document") {
+      val data = getClass.getResource("/3-document.cdl")
+      val parsed: CDLDocument = CDLParser.parseDocument(Source.fromURL(data))
+      assert(parsed.attrs === Nil)
+      assert(parsed.dlabel.isEmpty)
+      assert(parsed.rlabel.isEmpty)
+      val asStr = parsed.toString
+      assert(CDLParser.parseDocument(asStr).toString.replaceAll("\\s", "") === asStr.replaceAll("\\s", ""))
     }
   }
 }

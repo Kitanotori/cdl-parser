@@ -1,5 +1,15 @@
 test0
-test1.@attr
+test1.@a
+test2.@a.@b
+test3(x>y)
+test4(x>y).@a
+test5(x>y).@a.@b
+"test6"
+"test7".@a
+"test8".@a.@b
+"test9.@a".@b
+
+
 "test2"
 "test3".@attr
 test4..

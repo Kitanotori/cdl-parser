@@ -11,7 +11,7 @@ import org.junit.runner.RunWith
 import org.scalatest.FunSpec
 import org.scalatest.junit.JUnitRunner
 
-import cdl.newobjects.{ DefinitionLabel, ElementalRelation, RealizationLabel, Relation }
+import cdl.objects.{ DefinitionLabel, ElementalRelation, RealizationLabel, Relation }
 import cdl.parser.CDLParser
 
 @RunWith(classOf[JUnitRunner])
@@ -30,6 +30,9 @@ class ArcParsingTest extends FunSpec {
 
     it("should output arc as valid string") {
       val arc: Relation = new ElementalRelation(new RealizationLabel("1"), new DefinitionLabel("agt"), new RealizationLabel("2"))
+      assert(arc.from === "1")
+      assert(arc.to === "2")
+      assert(arc.relation === "agt")
       assert(arc.toString === "[1 agt 2]")
     }
   }
