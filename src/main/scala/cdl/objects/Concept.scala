@@ -45,7 +45,7 @@ trait Concept {
   def attrs: List[Attribute]
   def ctype: ConceptType.Value = ConceptType.Textual // Is not yet implemented properly anywhere
 
-  override def toString: String = "{#"+rlabel+" "+dlabel+" }"
+  override def toString: String = "{#" + rlabel + " " + dlabel + " }"
   override def equals(obj: Any): Boolean = obj.toString == toString
 }
 
@@ -62,8 +62,7 @@ class ElementalEntity(
   extends Entity {
 
   override def toString(tabs: String): String = {
-    val a = if (attrs.isEmpty) "" else attrs.mkString(".@", ".@", "")
-    return tabs+"<"+rlabel+":"+dlabel + a+">"
+    return tabs + "<" + rlabel + ":" + dlabel + Attribute.getAttrStr(attrs) + ">"
   }
 }
 
@@ -106,8 +105,8 @@ trait Relation extends Concept {
   def to: RealizationLabel
 
   override def toString = toString("")
-  def toString(tabs: String) = tabs+"["+from+" "+relation+" "+to+"]"
-  def toCypherString = "x"+from+"-[:"+relation+"]->x"+to
+  def toString(tabs: String) = tabs + "[" + from + " " + relation + " " + to + "]"
+  def toCypherString = "x" + from + "-[:" + relation + "]->x" + to
 }
 
 class ElementalRelation(
@@ -127,6 +126,13 @@ class ElementalRelation(
 // TODO: implement later!
 //}
 
+object Attribute {
+  def getAttrStr(attr: List[Attribute]): String = {
+    if (attr.isEmpty) ""
+    else attr.mkString(".@", ".@", "")
+  }
+}
+
 class Attribute(
   // val ctype: ConceptType.Value = ConceptType.Textual,
   val dlabel: DefinitionLabel,
@@ -137,16 +143,9 @@ class Attribute(
   def this(attr: String) {
     this(new DefinitionLabel(attr))
   }
-  def toAttrListForm = ".@"+toString
+  def toAttrListForm = ".@" + toString
 
   override def toString = dlabel.toString
-}
-
-object UW {
-  def getConsStr(cons: List[Constraint]): String = {
-    if (cons.isEmpty) ""
-    else cons.mkString("(", ",", ")")
-  }
 }
 
 class UW(
@@ -155,11 +154,22 @@ class UW(
   val hw: String,
   val cons: List[Constraint],
   atr: List[Attribute])
-  extends ElementalEntity(rl, new DefinitionLabel(hw + UW.getConsStr(cons)), atr) {
+  extends ElementalEntity(rl, new DefinitionLabel(hw + Constraint.getConsStr(cons)), atr) {
 
   def this(hw: String, cons: List[Constraint] = Nil, attrs: List[Attribute] = Nil) = this(new RealizationLabel(), hw, cons, attrs)
 
-  def baseUW = dlabel.toString
+  def baseUW: String = dlabel.toString
+
+  def getConstStr: String = Constraint.getConsStr(cons)
+
+  def getAttrStr: String = Attribute.getAttrStr(attrs)
+}
+
+object Constraint {
+  def getConsStr(cons: List[Constraint]): String = {
+    if (cons.isEmpty) ""
+    else cons.mkString("(", ",", ")")
+  }
 }
 
 /*

@@ -6,32 +6,49 @@
 package cdl.parser
 
 import java.io.File
+
 import scala.Array.canBuildFrom
-import scala.annotation.migration
 import scala.collection.mutable.ListBuffer
 import scala.io.{ BufferedSource, Source }
 import scala.util.parsing.combinator.RegexParsers
+
 import cdl.objects.{ Attribute, CDLDocument, ComplexEntity, Constraint, DefinitionLabel, ElementalRelation, Entity, RealizationLabel, Relation, UW }
-import cdl.objects.DefinitionLabel
-import cdl.objects.RealizationLabel
-import cdl.objects.RealizationLabel
 
 class CDLParsingError(reason: String) extends Exception(reason)
 class CDLParsingFailure(reason: String) extends Exception(reason)
 class CDLSourceError(reason: String) extends Exception(reason)
 
 object CDLParser {
+
+  @throws[CDLParsingFailure]
+  @throws[CDLParsingError]
   def parseDocument(dataSource: Any): CDLDocument = (new CDLParser(dataSource)).parseDocument
+
+  @throws[CDLParsingFailure]
+  @throws[CDLParsingError]
   def parseUW(dataSource: Any): UW = (new CDLParser(dataSource)).parseUW
+
+  @throws[CDLParsingFailure]
+  @throws[CDLParsingError]
   def parseBaseUW(dataSource: Any): UW = (new CDLParser(dataSource)).parseBaseUW
+
+  @throws[CDLParsingFailure]
+  @throws[CDLParsingError]
   def parseArc(dataSource: Any): Relation = (new CDLParser(dataSource)).parseArc
+
+  @throws[CDLParsingFailure]
+  @throws[CDLParsingError]
+  def parseConstraints(dataSource: Any): List[Constraint] = (new CDLParser(dataSource)).parseCons
+
+  @throws[CDLParsingFailure]
+  @throws[CDLParsingError]
   def format(doc: String): String = parseDocument(doc).toString
 }
 
 /* @param source should be castable to BufferedSource or CharSequence */
 class CDLParser(val dataSource: Any, val sourceLabel: String = "") extends RegexParsers {
 
-  /**
+  /*
    * Begins parsing from combinator stated in 'begin'.
    * Data source can be BufferedSource, CharSequence or File.
    *
@@ -42,41 +59,27 @@ class CDLParser(val dataSource: Any, val sourceLabel: String = "") extends Regex
    */
   private def doParse[T](begin: Parser[T]): ParseResult[T] = dataSource match {
     case ds: BufferedSource => parseAll(begin, ds.reader)
-    case ds: CharSequence   => parseAll(begin, ds)
-    case ds: File           => parseAll(begin, Source.fromFile(ds).reader)
-    case _                  => throw new CDLSourceError("Invalid parsing source")
+    case ds: CharSequence => parseAll(begin, ds)
+    case ds: File => parseAll(begin, Source.fromFile(ds).reader)
+    case _ => throw new CDLSourceError("Invalid parsing source")
   }
 
   /* Just a simple helper function */
   private def >>[T](p: ParseResult[T]): T = p match {
     case Success(parsed, _) => parsed
     case Failure(msg, rest) => throw new CDLParsingFailure(msg)
-    case Error(msg, rest)   => throw new CDLParsingError(msg)
+    case Error(msg, rest) => throw new CDLParsingError(msg)
   }
 
-  /**
-   * @throws(classOf[CDLParsingFailure])
-   * @throws(classOf[CDLParsingError])
-   */
   def parseDocument: CDLDocument = >>(doParse(_document))
 
-  /**
-   * @throws(classOf[CDLParsingFailure])
-   * @throws(classOf[CDLParsingError])
-   */
   def parseBaseUW: UW = >>(doParse(_baseUW))
 
-  /**
-   * @throws(classOf[CDLParsingFailure])
-   * @throws(classOf[CDLParsingError])
-   */
   def parseArc: Relation = >>(doParse(_arc))
 
-  /**
-   * @throws(classOf[CDLParsingFailure])
-   * @throws(classOf[CDLParsingError])
-   */
   def parseUW: UW = >>(doParse(_uw))
+
+  def parseCons: List[Constraint] = >>(doParse(_constraints))
 
   private val ws = "(\\s)*".r
   private val noStops = "[^:<>@\\{\\}\\[\\]\\(\\)\\.\\s,]*".r
@@ -88,15 +91,15 @@ class CDLParser(val dataSource: Any, val sourceLabel: String = "") extends Regex
     case rl ~ dl ~ entities => {
       val deflabel = dl match {
         case Some(dlabel) => dlabel
-        case None         => new DefinitionLabel()
+        case None => new DefinitionLabel()
       }
       val ents = ListBuffer[Entity]()
       val arcs = ListBuffer[Relation]()
 
       entities.foreach(_ match {
-        case e: Entity   => ents += e
+        case e: Entity => ents += e
         case e: Relation => arcs += e
-        case _           => throw new CDLParsingError("Problem parsing entities")
+        case _ => throw new CDLParsingError("Problem parsing entities")
       })
 
       new ComplexEntity(rl, deflabel, Nil, ents.toList, arcs.toList)
@@ -117,7 +120,7 @@ class CDLParser(val dataSource: Any, val sourceLabel: String = "") extends Regex
       }*/
       var a: List[Attribute] = attrs match {
         case Some(x) => x
-        case None    => Nil
+        case None => Nil
       }
       val h = hw match {
         case Some(head) => {
@@ -131,7 +134,7 @@ class CDLParser(val dataSource: Any, val sourceLabel: String = "") extends Regex
       }
       val c: List[Constraint] = cons match {
         case Some(x) => x
-        case None    => Nil
+        case None => Nil
       }
       new UW(r, h, c, a)
     }
@@ -146,7 +149,7 @@ class CDLParser(val dataSource: Any, val sourceLabel: String = "") extends Regex
   }
 
   private def _attributes: Parser[List[Attribute]] = ws ~> ".@" ~> rep1sep(_attribute, ".@") <~ ws ^^ {
-    case Nil   => List[Attribute]()
+    case Nil => List[Attribute]()
     case attrs => attrs
   }
 
@@ -160,15 +163,15 @@ class CDLParser(val dataSource: Any, val sourceLabel: String = "") extends Regex
     case head ~ cons ~ attrs => {
       val h = head match {
         case Some(x) => x
-        case None    => ""
+        case None => ""
       }
       val c = cons match {
         case Some(x) => x
-        case None    => List[Constraint]()
+        case None => List[Constraint]()
       }
       val a = attrs match {
         case Some(x) => x
-        case None    => List[Attribute]()
+        case None => List[Attribute]()
       }
       new UW(h, c, a)
     }
