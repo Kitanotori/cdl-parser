@@ -31,7 +31,7 @@ class ConceptParsingTest extends FunSpec {
   describe("Parser") {
     it("should parse 1. test concept with a quoted UW and an attribute") {
       val parsed = CDLParser.parseUW(concepts(0))
-      assert(parsed.toString === """<01:"test1".@attr>""")
+      assert(parsed.toString() === """<01:"test1".@attr>""")
       assert(parsed.rlabel.toString === "01")
       assert(parsed.hw === "\"test1\"")
       assert(parsed.attrs === List(new Attribute("attr")))
@@ -41,7 +41,7 @@ class ConceptParsingTest extends FunSpec {
 
     it("should parse 2. test concept with an unquoted UW and a list of attributes") {
       val parsed = CDLParser.parseUW(concepts(1))
-      assert(parsed.toString === "<02:test2.@attr1.@attr2>")
+      assert(parsed.toString() === "<02:test2.@attr1.@attr2>")
       assert(parsed.rlabel.toString === "02")
       assert(parsed.hw === "test2")
       assert(parsed.attrs === List("attr1", "attr2"))
@@ -51,7 +51,7 @@ class ConceptParsingTest extends FunSpec {
 
     it("should parse 3. test concept with quoted empty UW without attributes") {
       val parsed = CDLParser.parseUW(concepts(2))
-      assert(parsed.toString === """<03:"">""")
+      assert(parsed.toString() === """<03:"">""")
       assert(parsed.rlabel.toString === "03")
       assert(parsed.hw === "\"\"")
       assert(parsed.attrs === Nil)
@@ -61,7 +61,7 @@ class ConceptParsingTest extends FunSpec {
 
     it("should parse 4. test concept with a number as UW and no attributes") {
       val parsed = CDLParser.parseUW(concepts(3))
-      assert(parsed.toString === "<04:2>")
+      assert(parsed.toString() === "<04:2>")
       assert(parsed.rlabel.toString === "04")
       assert(parsed.hw === "2")
       assert(parsed.attrs === Nil)
@@ -71,7 +71,7 @@ class ConceptParsingTest extends FunSpec {
 
     it("should parse 5. test concept with empty UW and no attributes") {
       val parsed = CDLParser.parseUW(concepts(4))
-      assert(parsed.toString === "<05:>")
+      assert(parsed.toString() === "<05:>")
       assert(parsed.rlabel.toString === "05")
       assert(parsed.hw === "")
       assert(parsed.attrs === Nil)
@@ -81,7 +81,7 @@ class ConceptParsingTest extends FunSpec {
 
     it("should parse 6. test concept") {
       val parsed = CDLParser.parseUW(concepts(5))
-      assert(parsed.toString === "<06:16(x>y)>")
+      assert(parsed.toString() === "<06:16(x>y)>")
       assert(parsed.rlabel.toString === "06")
       assert(parsed.hw === "16")
       assert(parsed.attrs === Nil)
@@ -91,7 +91,7 @@ class ConceptParsingTest extends FunSpec {
 
     it("should parse 7. test concept") {
       val parsed = CDLParser.parseUW(concepts(6))
-      assert(parsed.toString === "<07:16(x>y).@c>")
+      assert(parsed.toString() === "<07:16(x>y).@c>")
       assert(parsed.rlabel.toString === "07")
       assert(parsed.hw === "16")
       assert(parsed.attrs === List("c"))
@@ -101,7 +101,7 @@ class ConceptParsingTest extends FunSpec {
 
     it("should parse 8. test concept") {
       val parsed = CDLParser.parseUW(concepts(7))
-      assert(parsed.toString === "<08:16(x>y).@c.@d>")
+      assert(parsed.toString() === "<08:16(x>y).@c.@d>")
       assert(parsed.rlabel.toString === "08")
       assert(parsed.hw === "16")
       assert(parsed.attrs === List("c", "d"))
@@ -111,7 +111,7 @@ class ConceptParsingTest extends FunSpec {
 
     it("should parse 10. test concept") {
       val parsed = CDLParser.parseUW(concepts(8))
-      assert(parsed.toString === "<09:a(b>c(d>e,f<g)).@h.@i>")
+      assert(parsed.toString() === "<09:a(b>c(d>e,f<g)).@h.@i>")
       assert(parsed.rlabel.toString === "09")
       assert(parsed.hw === "a")
       assert(parsed.attrs === List("h", "i"))

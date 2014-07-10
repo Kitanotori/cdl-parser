@@ -45,11 +45,13 @@ trait Concept {
   def attrs: List[Attribute]
   def ctype: ConceptType.Value = ConceptType.Textual // Is not yet implemented properly anywhere
 
-  override def toString: String = "{#" + rlabel + " " + dlabel + " }" // Remember to !
+  override def toString: String = "{#"+rlabel+" "+dlabel+" }"
   override def equals(obj: Any): Boolean = obj.toString == toString
 }
 
 trait Entity extends Concept {
+  override def toString: String = toString("")
+  def toString(tabs: String): String // Override this!
 }
 
 class ElementalEntity(
@@ -59,9 +61,9 @@ class ElementalEntity(
   val attrs: List[Attribute])
   extends Entity {
 
-  override def toString: String = {
+  override def toString(tabs: String): String = {
     val a = if (attrs.isEmpty) "" else attrs.mkString(".@", ".@", "")
-    "<" + rlabel + ":" + dlabel + a + ">"
+    return tabs+"<"+rlabel+":"+dlabel + a+">"
   }
 }
 
@@ -70,19 +72,14 @@ class ComplexEntity(
   val rlabel: RealizationLabel,
   val dlabel: DefinitionLabel,
   val attrs: List[Attribute] = Nil,
-  val entities: List[Concept] = Nil, // TODO: This should be List[Entity] !
+  val entities: List[Entity] = Nil, // TODO: This should be List[Entity] !
   val relations: List[Relation] = Nil)
   extends Entity {
 
-  override def toString: String = toString("")
-
-  private def toString(tabs: String): String = {
+  override def toString(tabs: String): String = {
     val s = new StringBuilder(500)
 
-    entities.foreach(_ match {
-      case e: ElementalEntity => s ++= e.toString + '\n'
-      case e: ComplexEntity => s ++= e.toString(tabs + '\t') + '\n'
-    })
+    entities.foreach(e => s ++= e.toString(tabs + '\t') + '\n')
 
     relations.foreach(r => s ++= r.toString(tabs + '\t') + '\n')
 
@@ -109,8 +106,8 @@ trait Relation extends Concept {
   def to: RealizationLabel
 
   override def toString = toString("")
-  def toString(tabs: String) = tabs + "[" + from + " " + relation + " " + to + "]"
-  def toCypherString = "x" + from + "-[:" + relation + "]->x" + to
+  def toString(tabs: String) = tabs+"["+from+" "+relation+" "+to+"]"
+  def toCypherString = "x"+from+"-[:"+relation+"]->x"+to
 }
 
 class ElementalRelation(
@@ -140,7 +137,7 @@ class Attribute(
   def this(attr: String) {
     this(new DefinitionLabel(attr))
   }
-  def toAttrListForm = ".@" + toString
+  def toAttrListForm = ".@"+toString
 
   override def toString = dlabel.toString
 }
@@ -176,7 +173,7 @@ class Constraint(val rel: DefinitionLabel, val direction: String, val uw: UW) {
 }
 
 class CDLDocument(
-  ent: List[Concept] = Nil,
+  ent: List[Entity] = Nil,
   rl: RealizationLabel = new RealizationLabel(),
   dl: DefinitionLabel = new DefinitionLabel(),
   atr: List[Attribute] = Nil,

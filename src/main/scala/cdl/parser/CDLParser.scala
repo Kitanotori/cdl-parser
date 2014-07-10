@@ -6,13 +6,15 @@
 package cdl.parser
 
 import java.io.File
-
 import scala.Array.canBuildFrom
 import scala.annotation.migration
+import scala.collection.mutable.ListBuffer
 import scala.io.{ BufferedSource, Source }
 import scala.util.parsing.combinator.RegexParsers
-
-import cdl.objects.{ Attribute, CDLDocument, ComplexEntity, Concept, Constraint, DefinitionLabel, ElementalRelation, Entity, RealizationLabel, Relation, UW }
+import cdl.objects.{ Attribute, CDLDocument, ComplexEntity, Constraint, DefinitionLabel, ElementalRelation, Entity, RealizationLabel, Relation, UW }
+import cdl.objects.DefinitionLabel
+import cdl.objects.RealizationLabel
+import cdl.objects.RealizationLabel
 
 class CDLParsingError(reason: String) extends Exception(reason)
 class CDLParsingFailure(reason: String) extends Exception(reason)
@@ -78,35 +80,32 @@ class CDLParser(val dataSource: Any, val sourceLabel: String = "") extends Regex
 
   private val ws = "(\\s)*".r
   private val noStops = "[^:<>@\\{\\}\\[\\]\\(\\)\\.\\s,]*".r
+  private val noStopsWs = "[^:<>@\\{\\}\\[\\]\\(\\)\\.,]*".r
 
   private def _document: Parser[CDLDocument] = rep(_entity) ^^ { new CDLDocument(_) }
 
-  private def _entity: Parser[Concept] = "{" ~> _rLabel ~ opt(_dLabel) ~ rep(_enclosedUW | _entity | _arc) <~ "}" ^^ {
+  private def _entity: Parser[ComplexEntity] = "{" ~> _rLabel ~ opt(_dLabel) ~ rep(_enclosedUW | _entity | _arc) <~ "}" ^^ {
     case rl ~ dl ~ entities => {
       val deflabel = dl match {
         case Some(dlabel) => dlabel
         case None         => new DefinitionLabel()
       }
-      //var elemEntities: List[UW] = Nil
-      //var innerEntities: List[Concept] = Nil
-      var ents: List[Entity] = Nil
-      var arcs: List[Relation] = Nil
+      val ents = ListBuffer[Entity]()
+      val arcs = ListBuffer[Relation]()
 
       entities.foreach(_ match {
-        case e: Entity   => ents :+ e
-        case e: Relation => arcs :+ e
-        //case e: UW            => elemEntities :+ e
-        //case e: ComplexEntity => innerEntities :+ e
+        case e: Entity   => ents += e
+        case e: Relation => arcs += e
         case _           => throw new CDLParsingError("Problem parsing entities")
       })
 
-      new ComplexEntity(rl, deflabel, Nil, ents, arcs)
+      new ComplexEntity(rl, deflabel, Nil, ents.toList, arcs.toList)
     }
   }
 
   private def _rLabel: Parser[RealizationLabel] = ws ~> noStops <~ ws ^^ { new RealizationLabel(_) }
 
-  private def _dLabel: Parser[DefinitionLabel] = ws ~> noStops <~ ws ^^ { new DefinitionLabel(_) }
+  private def _dLabel: Parser[DefinitionLabel] = ws ~> noStopsWs ^^ { case dl => new DefinitionLabel(dl.trim) }
 
   private def _enclosedUW: Parser[UW] = _uw
 
@@ -138,7 +137,7 @@ class CDLParser(val dataSource: Any, val sourceLabel: String = "") extends Regex
     }
   }
 
-  private def _headword: Parser[String] = ws ~> ("\"[^\"]*\"".r | noStops) <~ ws
+  private def _headword: Parser[String] = ws ~> ("\"[^\"]*\"".r | noStopsWs) <~ ws ^^ (_.trim)
 
   private def _constraints: Parser[List[Constraint]] = ws ~> "(" ~> rep1sep(_constraint, ",") <~ ")" <~ ws
 
@@ -153,8 +152,8 @@ class CDLParser(val dataSource: Any, val sourceLabel: String = "") extends Regex
 
   private def _attribute: Parser[Attribute] = noStops ^^ { new Attribute(_) }
 
-  private def _arc: Parser[Relation] = "[" ~> _rLabel ~ _dLabel ~ _rLabel <~ "]" ^^ {
-    case from ~ rel ~ to => new ElementalRelation(from, rel, to)
+  private def _arc: Parser[Relation] = "[" ~> noStops ~ noStops ~ noStops <~ "]" ^^ {
+    case from ~ rel ~ to => new ElementalRelation(new RealizationLabel(from), new DefinitionLabel(rel), new RealizationLabel(to))
   }
 
   private def _baseUW: Parser[UW] = opt(_headword) ~ opt(_constraints) ~ opt(_attributes) ^^ {

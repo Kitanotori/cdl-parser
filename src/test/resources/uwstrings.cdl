@@ -8,20 +8,14 @@ test5(x>y).@a.@b
 "test7".@a
 "test8".@a.@b
 "test9.@a".@b
-
-
-"test2"
-"test3".@attr
-test4..
-test5..@attr
-"test6..".@attr
-"test7.@attr".@attr
-test8(icl>uw)
-test9(icl>uw).@attr
-"test10..().@"(icl>uw).@attr
-test11(icl>uw(agt>uw2,obj>uw3),icl>uw4(agt>uw5))
+"test10,	137-145:1H
+test11(icl	<	uw)
 test12(icl>uw1(agt>uw2,obj>uw3),icl>uw4).@attr1.@attr2
-test13(agt>thing,obj>role>effect)
-test14(icl< uw)
-.@test15,	137-145:1H
->1.@topic
+test13..
+test14..@attr
+"test15..".@attr
+"test16.@attr".@attr
+"test17..().@"(icl>uw).@attr
+test18(icl>uw(agt>uw2,obj>uw3),icl>uw4(agt>uw5))
+test19(icl< uw)
+test20(icl	<uw)
