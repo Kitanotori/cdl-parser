@@ -23,8 +23,8 @@ class ConceptParsingTest extends FunSpec {
   describe("Parsed file") {
     it("should read correct data from test file") {
       assert(concepts(0) === """<01:"test1".@attr>""")
-      assert(concepts.last === """<09:a(b>c(d>e,f<g)).@h.@i>""")
-      assert(concepts.size === 9)
+      assert(concepts.last === """<16:etc.(a>b).@c>""")
+      assert(concepts.size === 16)
     }
   }
 
@@ -109,7 +109,7 @@ class ConceptParsingTest extends FunSpec {
       assert(parsed.baseUW === "16(x>y)")
     }
 
-    it("should parse 10. test concept") {
+    it("should parse 9. test concept") {
       val parsed = CDLParser.parseUW(concepts(8))
       assert(parsed.toString() === "<09:a(b>c(d>e,f<g)).@h.@i>")
       assert(parsed.rlabel.toString === "09")
@@ -120,5 +120,76 @@ class ConceptParsingTest extends FunSpec {
       assert(parsed.baseUW === "a(b>c(d>e,f<g))")
 
     }
+
+    it("should parse 10. test concept") {
+      val parsed = CDLParser.parseUW(concepts(9))
+      assert(parsed.toString() === "<10:a b.@c>")
+      assert(parsed.rlabel.toString === "10")
+      assert(parsed.hw === "a b")
+      assert(parsed.attrs === List("c"))
+      assert(parsed.cons === Nil)
+      assert(parsed.baseUW === "a b")
+    }
+
+    it("should parse 11. test concept") {
+      val parsed = CDLParser.parseUW(concepts(10))
+      assert(parsed.toString() === "<11:3.0>")
+      assert(parsed.rlabel.toString === "11")
+      assert(parsed.hw === "3.0")
+      assert(parsed.attrs === Nil)
+      assert(parsed.cons === Nil)
+      assert(parsed.baseUW === "3.0")
+    }
+
+    it("should parse 12. test concept") {
+      val parsed = CDLParser.parseUW(concepts(11))
+      assert(parsed.toString() === "<12:3.0.@a>")
+      assert(parsed.rlabel.toString === "12")
+      assert(parsed.hw === "3.0")
+      assert(parsed.attrs === List("a"))
+      assert(parsed.cons === Nil)
+      assert(parsed.baseUW === "3.0")
+    }
+
+    it("should parse 13. test concept") {
+      val parsed = CDLParser.parseUW(concepts(12))
+      assert(parsed.toString() === "<13:3.0(a>b).@c>")
+      assert(parsed.rlabel.toString === "13")
+      assert(parsed.hw === "3.0")
+      assert(parsed.attrs === List("c"))
+      assert(parsed.cons === List(new Constraint("a", ">", "b")))
+      assert(parsed.baseUW === "3.0(a>b)")
+    }
+
+    it("should parse 14. test concept") {
+      val parsed = CDLParser.parseUW(concepts(13))
+      assert(parsed.toString() === "<14:etc.>")
+      assert(parsed.rlabel.toString === "14")
+      assert(parsed.hw === "etc.")
+      assert(parsed.attrs === Nil)
+      assert(parsed.cons === Nil)
+      assert(parsed.baseUW === "etc.")
+    }
+
+    it("should parse 15. test concept") {
+      val parsed = CDLParser.parseUW(concepts(14))
+      assert(parsed.toString() === "<15:etc..@a>")
+      assert(parsed.rlabel.toString === "15")
+      assert(parsed.hw === "etc.")
+      assert(parsed.attrs === List("a"))
+      assert(parsed.cons === Nil)
+      assert(parsed.baseUW === "etc.")
+    }
+
+    it("should parse 16. test concept") {
+      val parsed = CDLParser.parseUW(concepts(15))
+      assert(parsed.toString() === "<16:etc.(a>b).@c>")
+      assert(parsed.rlabel.toString === "16")
+      assert(parsed.hw === "etc.")
+      assert(parsed.attrs === List("c"))
+      assert(parsed.cons === List(new Constraint("a", ">", "b")))
+      assert(parsed.baseUW === "etc.(a>b)")
+    }
+
   }
 }

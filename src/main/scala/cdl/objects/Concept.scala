@@ -42,10 +42,10 @@ class DefinitionLabel(dl: String = "") {
 trait Concept {
   def rlabel: RealizationLabel
   def dlabel: DefinitionLabel
-  def attrs: List[Attribute]
+  def attrs: Iterable[Attribute]
   def ctype: ConceptType.Value = ConceptType.Textual // Is not yet implemented properly anywhere
 
-  override def toString: String = "{#" + rlabel + " " + dlabel + " }"
+  override def toString: String = "{#"+rlabel+" "+dlabel+" }"
   override def equals(obj: Any): Boolean = obj.toString == toString
 }
 
@@ -58,11 +58,11 @@ class ElementalEntity(
   // val ctype: ConceptType.Value,
   val rlabel: RealizationLabel,
   val dlabel: DefinitionLabel,
-  val attrs: List[Attribute])
+  val attrs: Iterable[Attribute])
   extends Entity {
 
   override def toString(tabs: String): String = {
-    return tabs + "<" + rlabel + ":" + dlabel + Attribute.getAttrStr(attrs) + ">"
+    return tabs+"<"+rlabel+":"+dlabel + Attribute.getAttrStr(attrs)+">"
   }
 }
 
@@ -70,9 +70,9 @@ class ComplexEntity(
   // val ctype: ConceptType.Value,
   val rlabel: RealizationLabel,
   val dlabel: DefinitionLabel,
-  val attrs: List[Attribute] = Nil,
-  val entities: List[Entity] = Nil, // TODO: This should be List[Entity] !
-  val relations: List[Relation] = Nil)
+  val attrs: Iterable[Attribute] = Nil,
+  val entities: Iterable[Entity] = Nil, // TODO: This should be Iterable[Entity] !
+  val relations: Iterable[Relation] = Nil)
   extends Entity {
 
   override def toString(tabs: String): String = {
@@ -89,9 +89,9 @@ class ComplexEntity(
     }
   }
 
-  //def this(concepts: List[Concept], arcs: List[Arc]) = this("#", DefinitionLabel.Null, concepts, arcs)
+  //def this(concepts: Iterable[Concept], arcs: Iterable[Arc]) = this("#", DefinitionLabel.Null, concepts, arcs)
 
-  //def this(concepts: java.util.List[Concept], arcs: java.util.List[Arc]) = this("#", DefinitionLabel.Null, CDLConversions.toList(concepts), CDLConversions.toList(arcs))
+  //def this(concepts: java.util.Iterable[Concept], arcs: java.util.Iterable[Arc]) = this("#", DefinitionLabel.Null, CDLConversions.toIterable(concepts), CDLConversions.toIterable(arcs))
 
   def getRLabelName = {
     if (rlabel.isEmpty) java.util.UUID.randomUUID.toString
@@ -105,8 +105,8 @@ trait Relation extends Concept {
   def to: RealizationLabel
 
   override def toString = toString("")
-  def toString(tabs: String) = tabs + "[" + from + " " + relation + " " + to + "]"
-  def toCypherString = "x" + from + "-[:" + relation + "]->x" + to
+  def toString(tabs: String) = tabs+"["+from+" "+relation+" "+to+"]"
+  def toCypherString = "x"+from+"-[:"+relation+"]->x"+to
 }
 
 class ElementalRelation(
@@ -116,7 +116,7 @@ class ElementalRelation(
   val to: RealizationLabel,
   val rlabel: RealizationLabel = new RealizationLabel(),
   val dlabel: DefinitionLabel = new DefinitionLabel(),
-  val attrs: List[Attribute] = Nil)
+  val attrs: Iterable[Attribute] = Nil)
   extends Relation {
 
   def this(from: String, rel: String, to: String) = this(new RealizationLabel(from), new DefinitionLabel(rel), new RealizationLabel(to))
@@ -127,7 +127,7 @@ class ElementalRelation(
 //}
 
 object Attribute {
-  def getAttrStr(attr: List[Attribute]): String = {
+  def getAttrStr(attr: Iterable[Attribute]): String = {
     if (attr.isEmpty) ""
     else attr.mkString(".@", ".@", "")
   }
@@ -137,13 +137,13 @@ class Attribute(
   // val ctype: ConceptType.Value = ConceptType.Textual,
   val dlabel: DefinitionLabel,
   val rlabel: RealizationLabel = new RealizationLabel(),
-  val attrs: List[Attribute] = Nil)
+  val attrs: Iterable[Attribute] = Nil)
   extends Concept {
 
   def this(attr: String) {
     this(new DefinitionLabel(attr))
   }
-  def toAttrListForm = ".@" + toString
+  def toAttrIterableForm = ".@"+toString
 
   override def toString = dlabel.toString
 }
@@ -152,11 +152,13 @@ class UW(
   //ctype: ConceptType.Value = ConceptType.Proper,
   rl: RealizationLabel,
   val hw: String,
-  val cons: List[Constraint],
-  atr: List[Attribute])
+  val cons: Iterable[Constraint],
+  atr: Iterable[Attribute])
   extends ElementalEntity(rl, new DefinitionLabel(hw + Constraint.getConsStr(cons)), atr) {
 
-  def this(hw: String, cons: List[Constraint] = Nil, attrs: List[Attribute] = Nil) = this(new RealizationLabel(), hw, cons, attrs)
+  def this(hw: String, cons: Iterable[Constraint] = Nil, attrs: Iterable[Attribute] = Nil) = this(new RealizationLabel(), hw, cons, attrs)
+
+  def this(rlab: String, head: String, const: Iterable[Constraint]) = this(new RealizationLabel(rlab), head, const, Nil)
 
   def baseUW: String = dlabel.toString
 
@@ -166,7 +168,7 @@ class UW(
 }
 
 object Constraint {
-  def getConsStr(cons: List[Constraint]): String = {
+  def getConsStr(cons: Iterable[Constraint]): String = {
     if (cons.isEmpty) ""
     else cons.mkString("(", ",", ")")
   }
@@ -183,13 +185,13 @@ class Constraint(val rel: DefinitionLabel, val direction: String, val uw: UW) {
 }
 
 class CDLDocument(
-  ent: List[Entity] = Nil,
+  ent: Iterable[Entity] = Nil,
   rl: RealizationLabel = new RealizationLabel(),
   dl: DefinitionLabel = new DefinitionLabel(),
-  atr: List[Attribute] = Nil,
-  rel: List[Relation] = Nil) extends ComplexEntity(rl, dl, atr, ent, rel) {
+  atr: Iterable[Attribute] = Nil,
+  rel: Iterable[Relation] = Nil) extends ComplexEntity(rl, dl, atr, ent, rel) {
 
-  // def this(entities: java.util.List[Entity], title: String) = this(CDLConversions.toList(entities), title)
+  // def this(entities: java.util.Iterable[Entity], title: String) = this(CDLConversions.toIterable(entities), title)
 
   override def toString = {
     val res = new StringBuilder(400000)
