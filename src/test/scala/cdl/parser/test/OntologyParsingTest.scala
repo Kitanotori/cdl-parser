@@ -19,6 +19,8 @@ class OntologyParsingTest extends FunSpec {
       val ontoTree = OntologyParser.parse(testData.getPath)
       assert(ontoTree != null)
       assert(ontoTree.uw === "uw")
+      assert(ontoTree.child(0).uw === "adverbial concept")
+      assert(ontoTree.child(0).child(0).uw === "how")
     }
   }
 }
