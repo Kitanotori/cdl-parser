@@ -1,9 +1,11 @@
 .classpath
 .cache
 .project
+.idea
 .settings/*
 *.class
 *.log
+*.iml
 
 # sbt specific
 dist/*
