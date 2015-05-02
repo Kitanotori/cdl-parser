@@ -4,7 +4,7 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>cdl-toolkit</groupId>
-	<artifactId>cdl-parser_2.10</artifactId>
+	<artifactId>cdl-parser_2.11</artifactId>
 	<packaging>jar</packaging>
 	<description>CDL Parser</description>
 	<version>1.2</version>
@@ -14,7 +14,7 @@
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<scala.version>2.10.5</scala.version>
+		<scala.version>2.11.6</scala.version>
 	</properties>
 
 	<dependencies>
@@ -22,6 +22,18 @@
 			<groupId>org.scala-lang</groupId>
 			<artifactId>scala-library</artifactId>
 			<version>${scala.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.scala-lang.modules</groupId>
+			<artifactId>scala-parser-combinators_2.11</artifactId>
+			<version>1.0.4</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.scala-lang.modules</groupId>
+			<artifactId>scala-xml_2.11</artifactId>
+			<version>1.0.4</version>
 		</dependency>
 
 		<dependency>
@@ -36,7 +48,7 @@
 			<version>1.1.3</version>
 			<scope>test</scope>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -46,7 +58,7 @@
 
 		<dependency>
 			<groupId>org.scalatest</groupId>
-			<artifactId>scalatest_2.10</artifactId>
+			<artifactId>scalatest_2.11</artifactId>
 			<version>2.2.4</version>
 			<scope>test</scope>
 		</dependency>
@@ -82,7 +94,7 @@
 						<arg>-unchecked</arg>
 						<arg>-deprecation</arg>
 						<arg>-explaintypes</arg>
-						<arg>-target:jvm-1.7</arg>
+						<arg>-target:jvm-1.8</arg>
 						<arg>-optimise</arg>
 					</args>
 				</configuration>
